@@ -3,6 +3,7 @@ package de.djgummikuh.constructionsite.demo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
@@ -12,9 +13,12 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
 import javax.jms.ConnectionFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication
 @EnableJms
+@EnableConfigurationProperties(DemoProperties.class)
 public class ConstructionSiteDemo {
 
     public static void main(String[] args) {
@@ -38,4 +42,14 @@ public class ConstructionSiteDemo {
         converter.setTypeIdPropertyName("_type");
         return converter;
     }
+
+    @Bean
+    public AssemblyRepository assemblyRepository(DemoProperties properties) {
+        Map<String, Assembly> assemblies = new HashMap<>();
+        properties.getRobots().forEach((key, config) -> {
+            assemblies.put(key, new Assembly(key, config.getSerialPort()));
+        });
+        return new DefaultAssemblyRepository(assemblies);
+    }
+
 }
